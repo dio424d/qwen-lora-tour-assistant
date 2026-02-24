@@ -125,5 +125,5 @@ python model.py
 
 ## 作者
 
-AI Study Project
+JIASHAOYUN
 
