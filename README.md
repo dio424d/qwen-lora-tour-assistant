@@ -11,13 +11,7 @@
 
 这是一个完整的大语言模型微调与部署项目，展示了从模型训练到生产部署的完整流程。
 
-**核心特性：**
-- ✅ **LoRA 参数高效微调** - 仅训练约 0.1% 的参数，大幅降低显存需求
-- ✅ **OpenAI 兼容 API** - 可直接对接 OpenWebUI、LangChain 等生态
-- ✅ **企业级架构** - 模块化设计、日志系统、配置管理、Docker 支持
-- ✅ **生产就绪** - 错误处理、健康检查、性能监控
-
-## 🎯 项目亮点（面向面试官）
+## 🎯 项目亮点
 
 ### 1. 技术栈
 - **后端框架**: FastAPI + Pydantic（类型安全、自动文档）
@@ -45,16 +39,12 @@
 │   ├── config.py            # 配置管理（Pydantic Settings）
 │   ├── logger.py            # 日志系统
 │   └── model.py             # 模型封装类（单例模式）
-├── app.py                    # FastAPI 主应用（推荐使用）
-├── simple_api.py             # 简化版 API
-├── api_server.py             # 旧版 API
+├── app.py                    # FastAPI 主应用
 ├── model.py                  # LoRA 训练代码
 ├── requirements.txt          # Python 依赖
 ├── Dockerfile                # Docker 镜像构建
 ├── docker-compose.yml        # Docker Compose 编排
 ├── .env.example              # 环境变量示例
-├── .gitignore                # Git 忽略规则
-├── GITHUB_GUIDE.md           # GitHub 上传指南
 └── README.md                 # 项目文档
 ```
 
@@ -84,7 +74,7 @@ python app.py
 # 方式2：使用 uvicorn
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
-# 方式3：Docker（推荐生产环境）
+# 方式3：Docker
 docker-compose up -d
 ```
 
@@ -269,9 +259,6 @@ MIT License - 详见 LICENSE 文件
 
 ## 👨‍💻 作者
 
-AI Study Project
+JIASHAOYUN
 
----
-
-**如果这个项目对你有帮助，请给个 Star ⭐**
 
