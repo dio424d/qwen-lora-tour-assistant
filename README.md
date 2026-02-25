@@ -1,57 +1,111 @@
 
 # Qwen LoRA 旅游咨询助手
 
-基于 Qwen1.5-1.8B-Chat 的旅游行业智能客服，使用 LoRA 微调技术，提供兼容 OpenAI 格式的 API 接口，可直接接入 OpenWebUI。
+&gt; 基于 Qwen1.5-1.8B-Chat 的旅游行业智能客服，使用 LoRA 高效微调技术，提供企业级 API 服务
 
-## 项目特点
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-- 🔧 使用 LoRA 高效微调技术
-- 📱 提供兼容 OpenAI 格式的 API
-- 🖥️ 支持 OpenWebUI 直接接入
-- 🚀 快速部署，易于使用
-- 📚 包含完整训练代码和数据集
+## 📋 项目简介
 
-## 项目结构
+这是一个完整的大语言模型微调与部署项目，展示了从模型训练到生产部署的完整流程。
+
+**核心特性：**
+- ✅ **LoRA 参数高效微调** - 仅训练约 0.1% 的参数，大幅降低显存需求
+- ✅ **OpenAI 兼容 API** - 可直接对接 OpenWebUI、LangChain 等生态
+- ✅ **企业级架构** - 模块化设计、日志系统、配置管理、Docker 支持
+- ✅ **生产就绪** - 错误处理、健康检查、性能监控
+
+## 🎯 项目亮点（面向面试官）
+
+### 1. 技术栈
+- **后端框架**: FastAPI + Pydantic（类型安全、自动文档）
+- **深度学习**: PyTorch + Transformers + PEFT
+- **工程化**: Docker + docker-compose + 日志系统 + 配置管理
+
+### 2. 代码质量
+- 模块化设计（`src/` 目录）
+- 类型注解完整
+- 完善的错误处理
+- 清晰的代码注释
+
+### 3. 工程实践
+- 单例模式管理模型生命周期
+- 环境变量配置（12-Factor App）
+- 结构化日志记录
+- API 版本管理
+
+## 📁 项目结构
 
 ```
 .
-├── Qwen1.5-1.8B-Chat/          # 基础模型
-├── qwen-lora-final/             # 训练好的 LoRA 权重
-├── train.txt                     # 训练数据集
-├── model.py                      # 训练代码
-├── api_server.py                 # API 服务
-├── requirements.txt              # 依赖包
-└── README.md                     # 项目文档
+├── src/                      # 源代码目录
+│   ├── __init__.py
+│   ├── config.py            # 配置管理（Pydantic Settings）
+│   ├── logger.py            # 日志系统
+│   └── model.py             # 模型封装类（单例模式）
+├── app.py                    # FastAPI 主应用（推荐使用）
+├── simple_api.py             # 简化版 API
+├── api_server.py             # 旧版 API
+├── model.py                  # LoRA 训练代码
+├── requirements.txt          # Python 依赖
+├── Dockerfile                # Docker 镜像构建
+├── docker-compose.yml        # Docker Compose 编排
+├── .env.example              # 环境变量示例
+├── .gitignore                # Git 忽略规则
+├── GITHUB_GUIDE.md           # GitHub 上传指南
+└── README.md                 # 项目文档
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 1. 安装依赖
+### 1. 环境配置
 
 ```bash
+# 克隆项目
+git clone https://github.com/dio424d/qwen-lora-tour-assistant.git
+cd qwen-lora-tour-assistant
+
+# 安装依赖
 pip install -r requirements.txt
+
+# 配置环境变量（可选）
+cp .env.example .env
+# 编辑 .env 修改配置
 ```
 
-### 2. 启动 API 服务
+### 2. 启动服务
 
 ```bash
-python api_server.py
+# 方式1：直接运行
+python app.py
+
+# 方式2：使用 uvicorn
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+# 方式3：Docker（推荐生产环境）
+docker-compose up -d
 ```
 
-服务将在 `http://localhost:8000` 启动。
+服务启动后访问：
+- API 文档: http://localhost:8000/docs
+- 健康检查: http://localhost:8000/health
 
 ### 3. 接入 OpenWebUI
 
 1. 打开 OpenWebUI
-2. 进入设置 -&gt; 模型 -&gt; 添加 OpenAI 兼容模型
-3. 配置如下：
-   - API Base: `http://localhost:8000/v1`
-   - API Key: 任意字符串（留空或填任意值）
-   - Model Name: `qwen-lora`
+2. 设置 → 模型 → 添加 OpenAI 兼容模型
+3. 配置：
+   - **API Base**: `http://localhost:8000/v1`
+   - **API Key**: `sk-任意字符串`
+   - **Model Name**: `qwen-lora`
 
-### 4. API 接口示例
+## 📡 API 接口文档
 
-#### 聊天接口
+### 聊天完成
+
+**POST** `/v1/chat/completions`
 
 ```bash
 curl -X POST http://localhost:8000/v1/chat/completions \
@@ -66,64 +120,158 @@ curl -X POST http://localhost:8000/v1/chat/completions \
   }'
 ```
 
-#### 模型列表
-
-```bash
-curl http://localhost:8000/v1/models
+**响应示例：**
+```json
+{
+  "id": "chatcmpl-xxx",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "model": "qwen-lora",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "推荐您去青岛..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  }
+}
 ```
 
-#### 健康检查
+### 其他接口
 
-```bash
-curl http://localhost:8000/health
-```
+- `GET /health` - 健康检查
+- `GET /v1/models` - 模型列表
 
-## 模型训练
+## 🎓 模型训练
 
-### 数据集
-
-数据集位于 `train.txt`，包含中英文旅游咨询问答对。可以使用 `filter_chinese_data.py` 过滤出仅中文数据：
-
-```bash
-python filter_chinese_data.py
-```
-
-### 训练模型
+### 训练代码
 
 ```bash
 python model.py
 ```
 
-训练参数可以在 `model.py` 中调整：
-- `EPOCHS`: 训练轮数
-- `LEARNING_RATE`: 学习率
-- `MAX_LEN`: 最大序列长度
-- `GRADIENT_CLIP_NORM`: 梯度裁剪
+### 核心训练参数
 
-## 技术栈
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `EPOCHS` | 训练轮数 | 1 |
+| `LEARNING_RATE` | 学习率 | 2e-5 |
+| `MAX_LEN` | 最大序列长度 | 128 |
+| `GRADIENT_CLIP_NORM` | 梯度裁剪 | 1.0 |
+| `LORA_R` | LoRA 秩 | 2 |
+| `LORA_ALPHA` | LoRA alpha | 4 |
 
-- FastAPI: API 服务框架
-- Transformers: 模型加载和推理
-- PEFT (LoRA): 参数高效微调
-- PyTorch: 深度学习框架
-- Uvicorn: ASGI 服务器
+### LoRA 配置亮点
 
-## 性能说明
+```python
+LoraConfig(
+    r=2,                    # 低秩矩阵维度
+    lora_alpha=4,           # 缩放因子
+    target_modules=["q_proj", "k_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+```
 
-- 基础模型: Qwen1.5-1.8B-Chat
-- LoRA 参数量: 约 0.1%
-- 推理显存需求: 约 4GB (FP16) 或 2GB (INT4)
-- CPU 推理: 支持，但速度较慢
+## 🐳 Docker 部署
 
-## 许可证
+### 构建镜像
 
-本项目仅供学习和研究使用。
+```bash
+docker build -t qwen-lora-api .
+```
 
-## 贡献
+### 使用 Docker Compose
+
+```bash
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+## 📊 性能指标
+
+| 指标 | 数值 |
+|------|------|
+| 基础模型 | Qwen1.5-1.8B-Chat |
+| LoRA 参数量 | ~0.1% |
+| 显存需求 (FP16) | ~4GB |
+| 显存需求 (INT4) | ~2GB |
+| CPU 推理 | 支持（较慢） |
+
+## 🛠️ 技术栈详解
+
+### 后端框架
+- **FastAPI**: 高性能异步 Web 框架
+- **Pydantic**: 数据验证和设置管理
+- **Uvicorn**: ASGI 服务器
+
+### 深度学习
+- **PyTorch**: 深度学习框架
+- **Transformers**: 预训练模型库
+- **PEFT**: 参数高效微调（LoRA）
+
+### 工程化
+- **Docker**: 容器化部署
+- **结构化日志**: 日志追踪和调试
+- **环境变量**: 12-Factor App 最佳实践
+
+## 📝 代码设计模式
+
+### 1. 单例模式（模型管理）
+```python
+# src/model.py
+_model_instance: Optional[QwenLoRAModel] = None
+
+def get_model() -&gt; QwenLoRAModel:
+    global _model_instance
+    if _model_instance is None:
+        _model_instance = QwenLoRAModel()
+    return _model_instance
+```
+
+### 2. 依赖注入（配置管理）
+```python
+# src/config.py
+class Settings(BaseSettings):
+    base_model_path: str = "./Qwen1.5-1.8B-Chat"
+    # ...
+```
+
+### 3. 生命周期管理
+```python
+@app.on_event("startup")
+async def startup_event():
+    model.load()
+```
+
+## 🤝 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
 
-## 作者
+## 📄 许可证
 
-JIASHAOYUN
+MIT License - 详见 LICENSE 文件
+
+## 👨‍💻 作者
+
+AI Study Project
+
+---
+
+**如果这个项目对你有帮助，请给个 Star ⭐**
 
