@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         QWEN_LORA_MODEL_PATH=./qwen-lora-final
         QWEN_HOST=0.0.0.0
         QWEN_PORT=8000
+        QWEN_DB_PATH=conversations.db
     """
     
     base_model_path: str = "./Qwen1.5-1.8B-Chat"
@@ -29,6 +30,7 @@ class Settings(BaseSettings):
     system_prompt: str = "你是一个专业的旅游行业客服，请简洁、友好地回复用户的旅游咨询，贴合旅游场景话术，保持真实回复风格。"
     
     device: str = "auto"
+    db_path: str = "conversations.db"
     
     class Config:
         env_prefix = "QWEN_"
