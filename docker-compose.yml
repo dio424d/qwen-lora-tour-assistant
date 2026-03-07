@@ -1,0 +1,20 @@
+
+version: "3.8"
+
+services:
+  qwen-lora-api:
+    build: .
+    container_name: qwen-lora-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Qwen1.5-1.8B-Chat:/app/Qwen1.5-1.8B-Chat:ro
+      - ./qwen-lora-final:/app/qwen-lora-final:ro
+      - ./logs:/app/logs
+    environment:
+      - QWEN_BASE_MODEL_PATH=/app/Qwen1.5-1.8B-Chat
+      - QWEN_LORA_MODEL_PATH=/app/qwen-lora-final
+      - QWEN_HOST=0.0.0.0
+      - QWEN_PORT=8000
+    restart: unless-stopped
+
