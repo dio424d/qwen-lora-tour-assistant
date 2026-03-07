@@ -103,3 +103,14 @@ Icon
 *.swo
 *.bak
 *.tmp
+
+# 忽略测试/临时目录
+IndustryInstruction_Travel-Geography/
+TouInd/
+# 忽略日志目录
+logs/
+# 忽略Python缓存文件
+__pycache__/
+*.pyc
+# 忽略虚拟环境
+venv2/
