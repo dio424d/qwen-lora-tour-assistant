@@ -66,7 +66,7 @@ def load_model():
     
     print("模型加载完成！")
 
-def generate_response(messages: List[Dict], max_new_tokens: int = 512, temperature: float = 0.7):
+def generate_response(messages: List[Dict], max_new_tokens: int = 1024, temperature: float = 0.7):
     prompt = ""
     
     for msg in messages:

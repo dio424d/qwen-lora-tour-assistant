@@ -1,4 +1,3 @@
-
 import os
 import time
 import json
@@ -57,20 +56,20 @@ def load_model():
     
     print("模型加载完成！")
 
-def generate_response(messages: List[Dict], max_new_tokens: int = 512, temperature: float = 0.7):
+def generate_response(messages: List[Dict], max_new_tokens: int = 1024, temperature: float = 0.7):
     prompt = ""
     
     for msg in messages:
         role = msg["role"]
         content = msg["content"]
         if role == "system":
-            prompt += f"&lt;|im_start|&gt;system\n{content}&lt;|im_end|&gt;\n"
+            prompt += f"<|im_start|>system\n{content}<|im_end|>\n"
         elif role == "user":
-            prompt += f"&lt;|im_start|&gt;user\n{content}&lt;|im_end|&gt;\n"
+            prompt += f"<|im_start|>user\n{content}<|im_end|>\n"
         elif role == "assistant":
-            prompt += f"&lt;|im_start|&gt;assistant\n{content}&lt;|im_end|&gt;\n"
+            prompt += f"<|im_start|>assistant\n{content}<|im_end|>\n"
     
-    prompt += "&lt;|im_start|&gt;assistant\n"
+    prompt += "<|im_start|>assistant\n"
     
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
     
@@ -183,4 +182,3 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

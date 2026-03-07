@@ -11,7 +11,15 @@
 
 这是一个完整的大语言模型微调与部署项目，展示了从模型训练到生产部署的完整流程。
 
-## 🎯 项目亮点
+**核心特性：**
+- ✅ **LoRA 参数高效微调** - 仅训练约 0.1% 的参数，大幅降低显存需求
+- ✅ **OpenAI 兼容 API** - 可直接对接 OpenWebUI、LangChain 等生态
+- ✅ **对话历史记忆** - 基于 SQLite 的多会话管理，支持上下文记忆
+- ✅ **技能系统集成** - 集成高德地图API，支持天气查询、酒店搜索、路线规划等
+- ✅ **企业级架构** - 模块化设计、日志系统、配置管理、Docker 支持
+- ✅ **生产就绪** - 错误处理、健康检查、性能监控
+
+## 🎯 项目亮点（面向面试官）
 
 ### 1. 技术栈
 - **后端框架**: FastAPI + Pydantic（类型安全、自动文档）
@@ -38,13 +46,23 @@
 │   ├── __init__.py
 │   ├── config.py            # 配置管理（Pydantic Settings）
 │   ├── logger.py            # 日志系统
-│   └── model.py             # 模型封装类（单例模式）
-├── app.py                    # FastAPI 主应用
+│   ├── model.py             # 模型封装类（单例模式）
+│   ├── database.py          # 对话数据库管理（SQLite）
+│   ├── amap.py              # 高德地图API客户端
+│   ├── skill.py             # 技能系统基类
+│   └── skills.py            # 具体技能实现（天气/酒店/路线等）
+├── app.py                    # FastAPI 主应用（推荐使用，支持对话记忆）
+├── init_db.py               # 数据库初始化脚本
+├── example_with_memory.py   # 对话记忆功能示例
+├── simple_api.py             # 简化版 API
+├── api_server.py             # 旧版 API
 ├── model.py                  # LoRA 训练代码
 ├── requirements.txt          # Python 依赖
 ├── Dockerfile                # Docker 镜像构建
 ├── docker-compose.yml        # Docker Compose 编排
 ├── .env.example              # 环境变量示例
+├── .gitignore                # Git 忽略规则
+├── GITHUB_GUIDE.md           # GitHub 上传指南
 └── README.md                 # 项目文档
 ```
 
@@ -65,7 +83,16 @@ cp .env.example .env
 # 编辑 .env 修改配置
 ```
 
-### 2. 启动服务
+### 2. 初始化数据库（对话记忆功能）
+
+```bash
+# 初始化对话数据库
+python init_db.py
+```
+
+数据库文件 `conversations.db` 会自动创建，用于存储对话历史。
+
+### 3. 启动服务
 
 ```bash
 # 方式1：直接运行
@@ -74,7 +101,7 @@ python app.py
 # 方式2：使用 uvicorn
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
-# 方式3：Docker
+# 方式3：Docker（推荐生产环境）
 docker-compose up -d
 ```
 
@@ -93,10 +120,11 @@ docker-compose up -d
 
 ## 📡 API 接口文档
 
-### 聊天完成
+### 聊天完成（支持对话记忆）
 
 **POST** `/v1/chat/completions`
 
+#### 基础用法（无对话记忆）
 ```bash
 curl -X POST http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -109,6 +137,43 @@ curl -X POST http://localhost:8000/v1/chat/completions \
     "max_tokens": 512
   }'
 ```
+
+#### 高级用法（带对话记忆）
+```bash
+# 第一次对话
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-lora",
+    "messages": [
+      {"role": "user", "content": "我想去云南旅游"}
+    ],
+    "session_id": "user-123",
+    "temperature": 0.7
+  }'
+
+# 第二次对话（会记住之前的上下文）
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-lora",
+    "messages": [
+      {"role": "user", "content": "大概需要多少钱？"}
+    ],
+    "session_id": "user-123",
+    "temperature": 0.7
+  }'
+```
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `model` | string | 是 | 模型名称 |
+| `messages` | array | 是 | 对话消息列表 |
+| `temperature` | number | 否 | 温度参数 (0-2) |
+| `max_tokens` | number | 否 | 最大生成 tokens |
+| `session_id` | string | 否 | 会话ID，用于对话记忆 |
+| `user_id` | string | 否 | 用户ID |
 
 **响应示例：**
 ```json
@@ -137,8 +202,97 @@ curl -X POST http://localhost:8000/v1/chat/completions \
 
 ### 其他接口
 
+#### 获取所有会话
+
+**GET** `/v1/sessions`
+
+```bash
+curl http://localhost:8000/v1/sessions
+```
+
+#### 获取会话历史
+
+**GET** `/v1/sessions/{session_id}/history`
+
+```bash
+curl http://localhost:8000/v1/sessions/user-123/history?limit=10
+```
+
+#### 删除会话
+
+**DELETE** `/v1/sessions/{session_id}`
+
+```bash
+curl -X DELETE http://localhost:8000/v1/sessions/user-123
+```
+
 - `GET /health` - 健康检查
 - `GET /v1/models` - 模型列表
+
+## 🤖 技能系统
+
+### 功能列表
+
+项目集成了高德地图API，提供以下智能技能：
+
+| 技能名称 | 触发词 | 功能说明 | 示例 |
+|---------|--------|---------|------|
+| 天气查询 | 天气、气温 | 查询实时天气和未来预报 | "北京天气"、"上海天气怎么样" |
+| 酒店搜索 | 酒店、住宿 | 搜索目的地酒店 | "在北京找酒店" |
+| 景点查询 | 景点、旅游 | 搜索旅游景点 | "北京有什么景点" |
+| 餐厅搜索 | 餐厅、美食 | 搜索餐厅美食 | "北京有什么好吃的" |
+| 路线规划 | 路线、交通 | 规划驾车路线 | "从北京到上海怎么走" |
+
+### 配置方法
+
+1. 申请高德地图API密钥：https://lbs.amap.com/dev/key/app
+2. 编辑 `.env` 文件：
+```bash
+QWEN_AMAP_API_KEY=您的API密钥
+```
+
+### 使用示例
+
+```bash
+# 天气查询
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-lora",
+    "messages": [{"role": "user", "content": "北京天气"}]
+  }'
+
+# 酒店搜索
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-lora",
+    "messages": [{"role": "user", "content": "在上海找酒店"}]
+  }'
+```
+
+### 技能API
+
+#### 获取技能列表
+
+**GET** `/v1/skills`
+
+```bash
+curl http://localhost:8000/v1/skills
+```
+
+#### 执行技能
+
+**POST** `/v1/skills/execute`
+
+```bash
+curl -X POST http://localhost:8000/v1/skills/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill_name": "weather",
+    "parameters": {"city": "北京"}
+  }'
+```
 
 ## 🎓 模型训练
 
@@ -227,7 +381,7 @@ docker-compose down
 # src/model.py
 _model_instance: Optional[QwenLoRAModel] = None
 
-def get_model() -&gt; QwenLoRAModel:
+def get_model() -> QwenLoRAModel:
     global _model_instance
     if _model_instance is None:
         _model_instance = QwenLoRAModel()
@@ -259,6 +413,9 @@ MIT License - 详见 LICENSE 文件
 
 ## 👨‍💻 作者
 
-JIASHAOYUN
+AI Study Project
 
+---
+
+**如果这个项目对你有帮助，请给个 Star ⭐**
 
