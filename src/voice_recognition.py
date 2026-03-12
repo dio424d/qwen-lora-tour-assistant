@@ -94,6 +94,11 @@ class FunASRRecognizer:
     def load_model(self):
         """加载FunASR模型"""
         try:
+            # 在导入modelscope之前设置环境变量，禁用缓存
+            import os
+            os.environ['MODELSCOPE_CACHE'] = 'no'
+            os.environ['HF_DATASETS_OFFLINE'] = '1'  # 禁用datasets缓存
+            
             # 先尝试导入必要的库
             try:
                 from modelscope.pipelines import pipeline
@@ -105,11 +110,17 @@ class FunASRRecognizer:
             
             # 使用FunASR的paraformer模型
             print("正在加载FunASR模型...")
+            
+            # 检测是否有GPU可用
+            import torch
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            print(f"使用设备: {device}")
+            
             self.model = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model='damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
                 model_revision='v1.0.0',
-                device='cpu'  # 使用CPU，避免显存问题
+                device=device
             )
             self.model_loaded = True
             print("FunASR模型加载成功！")
