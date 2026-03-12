@@ -81,8 +81,11 @@ cd qwen-lora-tour-assistant
 # 安装依赖
 pip install -r requirements.txt
 
-# 安装语音功能依赖（新增）
+# 安装语音功能依赖
 pip install edge-tts gTTS
+
+# 安装FunASR语音识别依赖（可选，用于提升识别准确率）
+pip install modelscope onnxruntime
 
 # 配置环境变量（可选）
 cp .env.example .env
@@ -235,6 +238,8 @@ curl -X DELETE http://localhost:8000/v1/sessions/user-123
 - `GET /health` - 健康检查
 - `GET /v1/models` - 模型列表
 - `POST /v1/tts` - 文本转语音
+- `POST /v1/voice/recognize` - 语音识别
+- `GET /v1/voice/hotwords` - 获取热词表
 
 ## 🎤 语音功能
 
@@ -259,28 +264,88 @@ curl -X POST http://localhost:8000/v1/tts \
   -o output.mp3
 ```
 
-### 2. 前端语音功能
+### 2. 语音识别接口
+
+**POST** `/v1/voice/recognize`
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `audio_data` | string | 是 | Base64编码的音频数据 |
+| `use_hotwords` | boolean | 否 | 是否使用热词表（默认true） |
+
+**响应：**
+```json
+{
+  "text": "识别到的文本",
+  "confidence": 0.95,
+  "engine": "FunASR",
+  "hotwords_matched": ["大唐不夜城", "兵马俑"]
+}
+```
+
+**使用示例：**
+```bash
+# 获取热词表
+curl http://localhost:8000/v1/voice/hotwords
+
+# 语音识别
+curl -X POST http://localhost:8000/v1/voice/recognize \
+  -H "Content-Type: application/json" \
+  -d '{"audio_data": "base64_encoded_audio", "use_hotwords": true}'
+```
+
+### 3. 前端语音功能
 
 项目提供了完整的前端界面，支持：
 - 🎤 **语音输入** - 点击麦克风按钮进行语音输入
 - 🔊 **语音播放** - 每条回复后可点击播放按钮听取语音
 
 **技术实现：**
-- 前端：Web Speech API（语音识别）
-- 后端：Edge TTS + gTTS（语音合成）
-- 音频格式：MP3
+- **语音识别**：FunASR（优先）+ Web Speech API（保底）
+- **语音合成**：Edge TTS + gTTS
+- **音频格式**：MP3
+- **热词识别**：内置文旅专属热词表
 
-### 3. 语音服务配置
+**语音识别策略：**
+1. 优先使用FunASR（需要安装modelscope）
+2. 如果FunASR不可用，自动切换到Web Speech API
+3. 支持文旅热词识别，提升专有名词识别率
+
+### 4. 语音服务配置
 
 **支持的语音引擎：**
+
+**语音合成：**
 | 引擎 | 特点 | 配置 |
 |------|------|------|
 | Edge TTS | 微软语音服务，自然度高 | 默认使用 |
 | gTTS | Google 语音服务，兼容性好 | 备用方案 |
 
+**语音识别：**
+| 引擎 | 特点 | 配置 |
+|------|------|------|
+| FunASR | 阿里达摩院语音识别，支持热词 | 优先使用（需安装modelscope） |
+| Web Speech API | 浏览器内置语音识别 | 保底方案 |
+
 **安装依赖：**
 ```bash
+# 语音合成依赖
 pip install edge-tts gTTS
+
+# 语音识别依赖（可选，用于FunASR）
+pip install modelscope onnxruntime
+```
+
+### 5. 文旅专属热词表
+
+项目内置了丰富的文旅专属热词，包括：
+- 景点：大唐不夜城、兵马俑、大雁塔、华清池、西安城墙等
+- 美食：肉夹馍、回民街、永兴坊等
+- 文化：长安十二时辰、大唐芙蓉园、陕西历史博物馆等
+- 其他：文旅一卡通、钟鼓楼、碑林等
+
+热词表会自动匹配语音识别结果，提升专有名词识别准确率。
 ```
 
 ## 🤖 技能系统
