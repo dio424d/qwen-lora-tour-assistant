@@ -199,10 +199,12 @@ class VoiceRecognitionService:
                     hotwords_matched=hotwords_matched
                 )
         
-        # FunASR失败，抛出异常让前端使用Web Speech API
-        raise HTTPException(
-            status_code=503,
-            detail="FunASR服务不可用，请使用Web Speech API"
+        # FunASR失败，返回特定响应让前端使用Web Speech API
+        return AudioRecognitionResponse(
+            text="",
+            confidence=0.0,
+            engine='Web Speech API',
+            hotwords_matched=[]
         )
     
     def get_hotwords(self) -> List[str]:

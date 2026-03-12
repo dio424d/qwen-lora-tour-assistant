@@ -684,18 +684,32 @@
                 if (useFunASR) {
                     try {
                         const result = await recognizeWithFunASR(audioBlob);
-                        if (result) {
+                        // 检查FunASR返回的结果是否有效
+                        if (result && result.text && result.text.trim() !== '') {
                             handleRecognitionResult(result);
                             return;
+                        } else if (result && result.engine === 'Web Speech API') {
+                            // 后端提示使用Web Speech API
+                            console.log('后端提示使用Web Speech API');
                         }
                     } catch (error) {
                         console.warn('FunASR识别失败，切换到Web Speech API:', error);
-                        useFunASR = false;
                     }
                 }
                 
-                // FunASR失败，使用Web Speech API作为保底
-                await recognizeWithWebSpeech(audioBlob);
+                // FunASR失败或返回空结果，使用Web Speech API作为保底
+                console.log('切换到Web Speech API进行识别');
+                try {
+                    const result = await recognizeWithWebSpeech();
+                    if (result && result.text) {
+                        handleRecognitionResult(result);
+                    } else {
+                        showNotification('❌ 语音识别失败，请重试');
+                    }
+                } catch (error) {
+                    console.error('Web Speech API识别失败:', error);
+                    showNotification('❌ 语音识别失败，请检查麦克风权限或重试');
+                }
             };
             
             mediaRecorder.start();
@@ -764,42 +778,46 @@
             }
         }
 
-        async function recognizeWithWebSpeech(audioBlob) {
+        async function recognizeWithWebSpeech() {
             try {
-                // Web Speech API需要实时音频流，不能处理Blob
-                // 这里使用浏览器内置的语音识别作为保底
+                // Web Speech API使用浏览器内置的语音识别
                 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.lang = 'zh-CN';
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 
                 return new Promise((resolve, reject) => {
+                    let hasResult = false;
+                    
                     recognition.onresult = (event) => {
+                        hasResult = true;
                         const transcript = event.results[0][0].transcript;
+                        const confidence = event.results[0][0].confidence || 0.8;
+                        console.log('Web Speech API识别结果:', transcript, '置信度:', confidence);
                         resolve({
                             text: transcript,
-                            confidence: event.results[0][0].confidence || 0.8,
+                            confidence: confidence,
                             engine: 'Web Speech API',
                             hotwords_matched: []
                         });
                     };
                     
                     recognition.onerror = (event) => {
-                        reject(new Error('Web Speech API识别失败: ' + event.error));
+                        console.error('Web Speech API错误:', event.error);
+                        if (!hasResult) {
+                            reject(new Error('Web Speech API识别失败: ' + event.error));
+                        }
                     };
                     
                     recognition.onend = () => {
-                        reject(new Error('Web Speech API未返回结果'));
+                        if (!hasResult) {
+                            reject(new Error('Web Speech API未返回结果'));
+                        }
                     };
                     
-                    // 重新获取音频流进行识别
-                    navigator.mediaDevices.getUserMedia({ audio: true })
-                        .then(stream => {
-                            recognition.start();
-                        })
-                        .catch(err => {
-                            reject(new Error('无法获取麦克风权限'));
-                        });
+                    // 开始识别
+                    showNotification('🎤 正在使用浏览器语音识别...');
+                    recognition.start();
                 });
             } catch (error) {
                 console.error('Web Speech API识别错误:', error);
