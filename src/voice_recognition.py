@@ -94,10 +94,17 @@ class FunASRRecognizer:
     def load_model(self):
         """加载FunASR模型"""
         try:
-            from modelscope.pipelines import pipeline
-            from modelscope.utils.constant import Tasks
+            # 先尝试导入必要的库
+            try:
+                from modelscope.pipelines import pipeline
+                from modelscope.utils.constant import Tasks
+            except ImportError as ie:
+                print(f"FunASR依赖库未安装: {ie}")
+                print("提示: 如需使用FunASR，请运行: pip install modelscope onnxruntime")
+                return False
             
-            # 使用FunASR的paraformer-small模型（INT8量化版）
+            # 使用FunASR的paraformer模型
+            print("正在加载FunASR模型...")
             self.model = pipeline(
                 task=Tasks.auto_speech_recognition,
                 model='damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch',
@@ -105,9 +112,11 @@ class FunASRRecognizer:
                 device='cpu'  # 使用CPU，避免显存问题
             )
             self.model_loaded = True
+            print("FunASR模型加载成功！")
             return True
         except Exception as e:
             print(f"FunASR模型加载失败: {e}")
+            print("将使用Web Speech API作为语音识别方案")
             return False
     
     def recognize(self, audio_data: bytes) -> Optional[dict]:
