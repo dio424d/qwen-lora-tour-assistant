@@ -16,6 +16,7 @@
 - ✅ **OpenAI 兼容 API** - 可直接对接 OpenWebUI、LangChain 等生态
 - ✅ **对话历史记忆** - 基于 SQLite 的多会话管理，支持上下文记忆
 - ✅ **技能系统集成** - 集成高德地图API，支持天气查询、酒店搜索、路线规划等
+- ✅ **语音会话功能** - 支持语音输入和语音合成，提供更自然的交互体验
 - ✅ **企业级架构** - 模块化设计、日志系统、配置管理、Docker 支持
 - ✅ **生产就绪** - 错误处理、健康检查、性能监控
 
@@ -24,6 +25,8 @@
 ### 1. 技术栈
 - **后端框架**: FastAPI + Pydantic（类型安全、自动文档）
 - **深度学习**: PyTorch + Transformers + PEFT
+- **语音处理**: Edge TTS + gTTS（语音合成）
+- **前端**: HTML5 + JavaScript + Web Speech API（语音识别）
 - **工程化**: Docker + docker-compose + 日志系统 + 配置管理
 
 ### 2. 代码质量
@@ -77,6 +80,9 @@ cd qwen-lora-tour-assistant
 
 # 安装依赖
 pip install -r requirements.txt
+
+# 安装语音功能依赖（新增）
+pip install edge-tts gTTS
 
 # 配置环境变量（可选）
 cp .env.example .env
@@ -228,6 +234,54 @@ curl -X DELETE http://localhost:8000/v1/sessions/user-123
 
 - `GET /health` - 健康检查
 - `GET /v1/models` - 模型列表
+- `POST /v1/tts` - 文本转语音
+
+## 🎤 语音功能
+
+### 1. 文本转语音接口
+
+**POST** `/v1/tts`
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `text` | string | 是 | 要转换的文本 |
+
+**响应：**
+- 成功：返回 MP3 音频数据（Content-Type: audio/mpeg）
+- 失败：返回错误信息
+
+**使用示例：**
+```bash
+curl -X POST http://localhost:8000/v1/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text": "您好，欢迎使用旅游咨询助手"}' \
+  -o output.mp3
+```
+
+### 2. 前端语音功能
+
+项目提供了完整的前端界面，支持：
+- 🎤 **语音输入** - 点击麦克风按钮进行语音输入
+- 🔊 **语音播放** - 每条回复后可点击播放按钮听取语音
+
+**技术实现：**
+- 前端：Web Speech API（语音识别）
+- 后端：Edge TTS + gTTS（语音合成）
+- 音频格式：MP3
+
+### 3. 语音服务配置
+
+**支持的语音引擎：**
+| 引擎 | 特点 | 配置 |
+|------|------|------|
+| Edge TTS | 微软语音服务，自然度高 | 默认使用 |
+| gTTS | Google 语音服务，兼容性好 | 备用方案 |
+
+**安装依赖：**
+```bash
+pip install edge-tts gTTS
+```
 
 ## 🤖 技能系统
 
