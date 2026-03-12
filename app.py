@@ -15,7 +15,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
+import os
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -146,9 +148,17 @@ class ChatCompletionResponse(BaseModel):
 class TTSRequest(BaseModel):
     text: str
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"message": "Qwen LoRA API 服务运行中"}
+    """
+    返回聊天界面
+    """
+    web_chat_path = os.path.join(os.path.dirname(__file__), "web_chat.html")
+    if os.path.exists(web_chat_path):
+        with open(web_chat_path, "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return {"message": "Qwen LoRA API 服务运行中"}
 
 @app.get("/health")
 async def health_check():
