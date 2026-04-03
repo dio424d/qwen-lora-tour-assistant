@@ -1,0 +1,25 @@
+[33m10fd96b[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m feat: 集成高德API技能系统，优化Dockerfile和代码结构- 添加技能系统支持（天气、酒店、景点、餐厅、路线规划）- 优化GPU检测和模型加载逻辑- 更新Dockerfile配置- 添加GPU安装指南- 清理大文件，优化仓库大小
+[33mca1fd19[m feat: 集成高德API技能系统，支持实时天气查询和其他功能
+[33m6375421[m docs: 添加语音识别功能使用指南
+[33m7623dc5[m feat: 实现本地模型语音识别功能
+[33mf91c6e1[m Use local Paraformer model for voice recognition
+[33ma775571[m[33m ([m[1;31morigin/main[m[33m)[m Update
+[33m61c9f7e[m 简化前端语音识别直接使用WebSpeechAPI
+[33m4a07f45[m 修复语音识别失败和WebSpeechAPI自动切换问题
+[33m2fc4942[m 修复根路由，返回聊天界面而非JSON
+[33m15e1ea4[m 添加FunASR语音识别功能和文旅专属热词表
+[33mdd869eb[m 更新README.md，添加语音功能说明
+[33m9f9cefe[m 合并语音会话和技能系统功能
+[33m0360c88[m[33m ([m[1;32mmaster[m[33m)[m 添加语音会话功能和技能系统
+[33m6e2ab81[m Update README.md
+[33m231680e[m 更新.gitignore：忽略临时目录和日志
+[33mfa935ae[m 添加辅助文件：测试脚本、配置示例、部署文件等
+[33m3e21880[m 合并本地修改：更新配置、脚本和测试文件
+[33maa00455[m Add files via upload
+[33m701b75b[m Add files via upload
+[33m0a990df[m Add files via upload
+[33m9a43ce9[m Update README.md
+[33m27ebbc2[m Add files via upload
+[33m5b7977c[m Add files via upload
+[33mde1fd1d[m Update author name in README
+[33m2c9db80[m Add files via upload
