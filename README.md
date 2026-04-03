@@ -532,7 +532,7 @@ MIT License - 详见 LICENSE 文件
 
 ## 👨‍💻 作者
 
-AI Study Project
+Jia Shao Yun
 
 ---
 
